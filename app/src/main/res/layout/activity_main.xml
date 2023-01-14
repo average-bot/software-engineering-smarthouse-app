@@ -114,5 +114,11 @@
 
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/imageView_mic"
+            android:layout_width="60dp"
+            android:layout_height="98dp"
+            app:srcCompat="@drawable/mic" />
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

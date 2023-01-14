@@ -1,21 +1,32 @@
 package com.example.lab2
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import android.widget.Switch
 import android.widget.Toast
-import com.example.lab2.databinding.ActivityMainBinding
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.widget.TextView
+import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var lamp: String
     private lateinit var door: String
     private lateinit var window: String
 
+    // code for speech to text here https://www.geeksforgeeks.org/speech-to-text-application-in-android-with-kotlin/
+    lateinit var mic_image: ImageView
+
+    // on below line we are creating a constant value
+    private val REQUEST_CODE_SPEECH_INPUT = 1
+
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -87,5 +98,47 @@ class MainActivity : AppCompatActivity() {
             }
             database.child("window").setValue(window)
         }
+
+
+
+        // Code for speech to text
+        mic_image = findViewById(R.id.imageView_mic)
+
+        mic_image.setOnClickListener {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+
+            intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+
+            intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE,
+                Locale.getDefault()
+            )
+
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say the command")
+
+            try {
+                startActivityForResult(intent, REQUEST_CODE_SPEECH_INPUT)
+            } catch (e: Exception) {
+                Toast.makeText(
+                        this@MainActivity, " " + e.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_SPEECH_INPUT) {
+            if (resultCode == RESULT_OK && data != null) {
+                val res: ArrayList<String> =
+                    data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS) as ArrayList<String>
+                Toast.makeText(this, Objects.requireNonNull(res)[0], Toast.LENGTH_SHORT)
+            }
+        }
+
     }
 }
