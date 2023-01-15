@@ -20,8 +20,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var door: String
     private lateinit var window: String
 
+    lateinit var lampSwitch: Switch
+    lateinit var doorSwitch: Switch
+    lateinit var windowSwitch: Switch
+
+    private lateinit var lampImage: ImageView
+    private lateinit var doorImage: ImageView
+    private lateinit var windowImage: ImageView
+
     // code for speech to text here https://www.geeksforgeeks.org/speech-to-text-application-in-android-with-kotlin/
-    lateinit var mic_image: ImageView
+    lateinit var micImage: ImageView
 
     // on below line we are creating a constant value
     private val REQUEST_CODE_SPEECH_INPUT = 1
@@ -31,13 +39,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var lamp_switch: Switch = findViewById(R.id.switch_lamp)
-        var door_switch: Switch = findViewById(R.id.switch_door)
-        var window_switch: Switch = findViewById(R.id.switch_window)
+        lampSwitch = findViewById(R.id.switch_lamp)
+        doorSwitch = findViewById(R.id.switch_door)
+        windowSwitch = findViewById(R.id.switch_window)
 
-        var lamp_image: ImageView = findViewById(R.id.imageView_light)
-        var door_image: ImageView = findViewById(R.id.imageView_door)
-        var window_image: ImageView = findViewById(R.id.imageView_window)
+        lampImage = findViewById(R.id.imageView_light)
+        doorImage = findViewById(R.id.imageView_door)
+        windowImage = findViewById(R.id.imageView_window)
 
         // db
         var database = Firebase.database("https://lab2-2059e-default-rtdb.europe-west1.firebasedatabase.app").reference
@@ -49,62 +57,34 @@ class MainActivity : AppCompatActivity() {
             lamp = it.child("lamp").getValue(true).toString()
             door = it.child("door").getValue(true).toString()
             window = it.child("window").getValue(true).toString()
-            if(lamp == "on"){
-                lamp_switch.isChecked = true
-                lamp_image.setImageResource(R.drawable.light_on)
-            }
-            if(door == "open"){
-                door_switch.isChecked = true
-                door_image.setImageResource(R.drawable.door_open)
-            }
-            if(window == "open"){
-                window_switch.isChecked = true
-                window_image.setImageResource(R.drawable.open_window)
-            }
+            if(lamp == "on") turnOnLights()
+            if(door == "open") openDoor()
+            if(window == "open") openWindow()
         }.addOnFailureListener{
             Log.e("firebase", "Error getting data", it)
         }
 
         // when button clicked change state in db
-        lamp_switch.setOnCheckedChangeListener { _,isChecked ->
-            if (isChecked) {
-                lamp = "on"
-                lamp_image.setImageResource(R.drawable.light_on)
-            } else {
-                lamp = "off"
-                lamp_image.setImageResource(R.drawable.light_off)
-            }
+        lampSwitch.setOnCheckedChangeListener { _,isChecked ->
+            if (isChecked) turnOnLights() else turnOffLights()
             database.child("lamp").setValue(lamp)
         }
 
-        door_switch.setOnCheckedChangeListener { _,isChecked ->
-            if (isChecked) {
-                door = "open"
-                door_image.setImageResource(R.drawable.door_open)
-            } else {
-                door = "closed"
-                door_image.setImageResource(R.drawable.door_closed)
-            }
+        doorSwitch.setOnCheckedChangeListener { _,isChecked ->
+            if (isChecked) openDoor() else closeDoor()
             database.child("door").setValue(door)
         }
 
-        window_switch.setOnCheckedChangeListener { _,isChecked ->
-            if (isChecked) {
-                window = "open"
-                window_image.setImageResource(R.drawable.open_window)
-            } else {
-                window = "closed"
-                window_image.setImageResource(R.drawable.closed_window)
-            }
+        windowSwitch.setOnCheckedChangeListener { _,isChecked ->
+            if (isChecked) openWindow() else closeWindow()
             database.child("window").setValue(window)
         }
 
 
-
         // Code for speech to text
-        mic_image = findViewById(R.id.imageView_mic)
+        micImage = findViewById(R.id.imageView_mic)
 
-        mic_image.setOnClickListener {
+        micImage.setOnClickListener {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 
             intent.putExtra(
@@ -140,5 +120,37 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+    private fun turnOnLights(){
+        lamp = "on"
+        lampSwitch.isChecked = true
+        lampImage.setImageResource(R.drawable.light_on)
+    }
+    private fun turnOffLights(){
+        lamp = "off"
+        lampSwitch.isChecked = false
+        lampImage.setImageResource(R.drawable.light_off)
+    }
+
+    private fun openDoor(){
+        door = "open"
+        doorSwitch.isChecked = true
+        doorImage.setImageResource(R.drawable.door_open)
+    }
+    private fun closeDoor(){
+        door = "closed"
+        doorSwitch.isChecked = false
+        doorImage.setImageResource(R.drawable.door_closed)
+    }
+
+    private fun openWindow(){
+        window = "open"
+        windowSwitch.isChecked = true
+        windowImage.setImageResource(R.drawable.open_window)
+    }
+    private fun closeWindow(){
+        window = "closed"
+        windowSwitch.isChecked = false
+        windowImage.setImageResource(R.drawable.closed_window)
     }
 }
