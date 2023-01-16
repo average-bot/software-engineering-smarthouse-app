@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var doorImage: ImageView
     private lateinit var windowImage: ImageView
 
-    // code for speech to text here https://www.geeksforgeeks.org/speech-to-text-application-in-android-with-kotlin/
+    // code for speech to text here https://www.youtube.com/watch?v=YWNkNrmqff8
     lateinit var micImage: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,8 +110,18 @@ class MainActivity : AppCompatActivity() {
         }
         activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it!!.resultCode == RESULT_OK && it!!.data != null) {
-                val speechText = it!!.data!!.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).toString()
+                val speechText =
+                    it!!.data!!.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.get(0).toString().lowercase()
                 Toast.makeText(applicationContext, speechText, Toast.LENGTH_SHORT).show()
+
+                if (speechText == "turn on lights") turnOnLights()
+                if (speechText == "turn off lights") turnOffLights()
+
+                if (speechText == "open door") openDoor()
+                if (speechText == "close door") closeDoor()
+
+                if (speechText == "open window") openWindow()
+                if (speechText == "close window") closeWindow()
                 }
             }
         }
