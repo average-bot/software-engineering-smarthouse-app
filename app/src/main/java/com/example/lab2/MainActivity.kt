@@ -11,14 +11,20 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import android.content.Intent
 import android.speech.RecognizerIntent
+import android.text.Editable
 import android.widget.TextView
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var lamp: String
     private lateinit var door: String
     private lateinit var window: String
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
     lateinit var lampSwitch: Switch
     lateinit var doorSwitch: Switch
@@ -31,10 +37,6 @@ class MainActivity : AppCompatActivity() {
     // code for speech to text here https://www.geeksforgeeks.org/speech-to-text-application-in-android-with-kotlin/
     lateinit var micImage: ImageView
 
-    // on below line we are creating a constant value
-    private val REQUEST_CODE_SPEECH_INPUT = 1
-
-    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -64,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             Log.e("firebase", "Error getting data", it)
         }
 
-        // when button clicked change state in db
+        // when switch flipped change state in db
         lampSwitch.setOnCheckedChangeListener { _,isChecked ->
             if (isChecked) turnOnLights() else turnOffLights()
             database.child("lamp").setValue(lamp)
@@ -81,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        // Code for speech to text
+        // speech to text
         micImage = findViewById(R.id.imageView_mic)
 
         micImage.setOnClickListener {
@@ -100,27 +102,21 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say the command")
 
             try {
-                startActivityForResult(intent, REQUEST_CODE_SPEECH_INPUT)
+                activityResultLauncher.launch(intent)
             } catch (e: Exception) {
                 Toast.makeText(
-                        this@MainActivity, " " + e.message, Toast.LENGTH_SHORT).show()
+                        applicationContext, " " + e.message, Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CODE_SPEECH_INPUT) {
-            if (resultCode == RESULT_OK && data != null) {
-                val res: ArrayList<String> =
-                    data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS) as ArrayList<String>
-                Toast.makeText(this, Objects.requireNonNull(res)[0], Toast.LENGTH_SHORT)
+        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it!!.resultCode == RESULT_OK && it!!.data != null) {
+                val speechText = it!!.data!!.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).toString()
+                Toast.makeText(applicationContext, speechText, Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
-    }
+
     private fun turnOnLights(){
         lamp = "on"
         lampSwitch.isChecked = true
